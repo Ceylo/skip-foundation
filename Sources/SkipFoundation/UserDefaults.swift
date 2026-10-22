@@ -107,6 +107,13 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         } else if let v = value as? Date {
             prefs.putString(defaultName, dateToString(v))
             putUnrepresentableType(prefs, type: .date, forKey: defaultName)
+        } else if let v = value as? [Any], let json = jsonString(v) {
+            // SharedPreferences has no ordered collection: a property list array is stored as JSON
+            prefs.putString(defaultName, json)
+            putUnrepresentableType(prefs, type: .array, forKey: defaultName)
+        } else if let v = value as? [String: Any], let json = jsonString(v) {
+            prefs.putString(defaultName, json)
+            putUnrepresentableType(prefs, type: .dictionary, forKey: defaultName)
         } else {
             // we ignore
             return
@@ -157,6 +164,8 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
                         return dateFromString(string)
                     case .url:
                         return URL(string: string)
+                    case .array, .dictionary:
+                        return try? JSONSerialization.jsonObject(with: Data(string.utf8))
                     default: return value
                 }
             }
@@ -400,7 +409,16 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
              double = 1,
              date = 2,
              data = 3,
-             url = 4
+             url = 4,
+             array = 5,
+             dictionary = 6
+    }
+
+    private func jsonString(_ value: Any) -> String? {
+        guard let data = try? JSONSerialization.data(withJSONObject: value) else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
     }
     
     private static let unrepresentableTypePrefix = "__unrepresentable__:"

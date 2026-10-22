@@ -456,4 +456,23 @@ class TestUserDefaults : XCTestCase {
         XCTAssertEqual(0, defaults.integer(forKey: "nilkey"))
         XCTAssertNil(defaults.string(forKey: "nilkey"))
     }
+
+    func test_setValue_Array() {
+        let defaults = UserDefaults.standard
+        let value: [Any] = ["{\"id\":1}", "two"]
+        defaults.set(value, forKey: "arraykey")
+        XCTAssertEqual(defaults.object(forKey: "arraykey") as? [String], ["{\"id\":1}", "two"])
+        let empty: [Any] = []
+        defaults.set(empty, forKey: "arraykey")
+        XCTAssertEqual((defaults.object(forKey: "arraykey") as? [String])?.count, 0)
+    }
+
+    func test_setValue_Dictionary() {
+        let defaults = UserDefaults.standard
+        let value: [String: Any] = ["name": "fur", "count": 2]
+        defaults.set(value, forKey: "dictkey")
+        let stored = defaults.object(forKey: "dictkey") as? [String: Any]
+        XCTAssertEqual(stored?["name"] as? String, "fur")
+        XCTAssertEqual(stored?["count"] as? Int, 2)
+    }
 }
