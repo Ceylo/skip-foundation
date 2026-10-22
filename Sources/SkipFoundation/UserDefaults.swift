@@ -165,7 +165,8 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
                     case .url:
                         return URL(string: string)
                     case .array, .dictionary:
-                        return try? JSONSerialization.jsonObject(with: Data(string.utf8))
+                        guard let data = string.data(using: String.Encoding.utf8) else { return nil }
+                        return try? JSONSerialization.jsonObject(with: data)
                     default: return value
                 }
             }
@@ -418,7 +419,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         guard let data = try? JSONSerialization.data(withJSONObject: value) else {
             return nil
         }
-        return String(data: data, encoding: .utf8)
+        return data.utf8String
     }
     
     private static let unrepresentableTypePrefix = "__unrepresentable__:"
