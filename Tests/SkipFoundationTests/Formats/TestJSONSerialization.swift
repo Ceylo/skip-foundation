@@ -36,6 +36,11 @@ extension TestJSONSerialization {
 //        ]
 //    }
 
+    func test_serializeStringOutsideTheBMP() throws {
+        let data = try JSONSerialization.data(withJSONObject: ["pumpkin 🎃"])
+        XCTAssertEqual(String(data: data, encoding: .utf8), "[\"pumpkin 🎃\"]")
+    }
+
     func test_JSONObjectWithData_emptyObject() throws {
         let bytes: [UInt8] = [UInt8(0x7B), UInt8(0x7D)]
         let subject = Data(bytes)

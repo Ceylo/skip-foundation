@@ -439,36 +439,38 @@ private struct JSONWriter {
     }
 
     func serializeString(_ str: String) throws {
-        writer("\"")
+        // Written once: on Kotlin a Character is a UTF-16 unit, and a surrogate written alone encodes as "?"
+        var escaped = "\""
         for scalar in str { // TODO: str.unicodeScalars {
             switch scalar {
                 case "\"":
-                    writer("\\\"") // U+0022 quotation mark
+                    escaped += "\\\"" // U+0022 quotation mark
                 case "\\":
-                    writer("\\\\") // U+005C reverse solidus
+                    escaped += "\\\\" // U+005C reverse solidus
                 case "/":
-                    if !withoutEscapingSlashes { writer("\\") }
-                    writer("/") // U+002F solidus
+                    if !withoutEscapingSlashes { escaped += "\\" }
+                    escaped += "/" // U+002F solidus
 //                case "\u{8}":
 //                    writer("\\b") // U+0008 backspace
 //                case "\u{c}":
 //                    writer("\\f") // U+000C form feed
                 case "\n":
-                    writer("\\n") // U+000A line feed
+                    escaped += "\\n" // U+000A line feed
                 case "\r":
-                    writer("\\r") // U+000D carriage return
+                    escaped += "\\r" // U+000D carriage return
                 case "\t":
-                    writer("\\t") // U+0009 tab
+                    escaped += "\\t" // U+0009 tab
                 // TODO
 //                case "\u{0}"..."\u{f}":
 //                    writer("\\u000\(String(scalar.value, radix: 16))") // U+0000 to U+000F
 //                case "\u{10}"..."\u{1f}":
 //                    writer("\\u00\(String(scalar.value, radix: 16))") // U+0010 to U+001F
                 default:
-                    writer(String(scalar))
+                    escaped += String(scalar)
             }
         }
-        writer("\"")
+        escaped += "\""
+        writer(escaped)
     }
 
     private func serializeFloat(_ num: Double) throws {

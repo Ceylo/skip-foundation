@@ -459,9 +459,9 @@ class TestUserDefaults : XCTestCase {
 
     func test_setValue_Array() {
         let defaults = UserDefaults.standard
-        let value: [Any] = ["{\"id\":1}", "two"]
+        let value: [Any] = ["{\"id\":1}", "two 🎃"]
         defaults.set(value, forKey: "arraykey")
-        XCTAssertEqual(defaults.object(forKey: "arraykey") as? [String], ["{\"id\":1}", "two"])
+        XCTAssertEqual(defaults.object(forKey: "arraykey") as? [String], ["{\"id\":1}", "two 🎃"])
         let empty: [Any] = []
         defaults.set(empty, forKey: "arraykey")
         XCTAssertEqual((defaults.object(forKey: "arraykey") as? [String])?.count, 0)
