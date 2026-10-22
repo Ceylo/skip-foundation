@@ -165,8 +165,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
                     case .url:
                         return URL(string: string)
                     case .array, .dictionary:
-                        guard let data = string.data(using: String.Encoding.utf8) else { return nil }
-                        return try? JSONSerialization.jsonObject(with: data)
+                        return try? JSONSerialization.jsonObject(with: string.utf8Data)
                     default: return value
                 }
             }
