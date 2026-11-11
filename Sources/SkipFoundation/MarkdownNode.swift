@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if SKIP
 import org.commonmark.ext.gfm.strikethrough.Strikethrough
 import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension
@@ -74,6 +73,13 @@ public final class MarkdownNode {
         }
     }
 
+    /// Parse localized Markdown without discarding whitespace or literal HTML.
+    internal static func fromInline(string: String) -> MarkdownNode? {
+        let document = AttributedMarkdown.parse(source: string)
+        guard NodeType.hasMarkdown(document) else { return nil }
+        return MarkdownNode(document)
+    }
+
     public let type: NodeType
     /// The string is converted to use Kotlin/Java-style format specifiers.
     public let string: String?
@@ -81,7 +87,7 @@ public final class MarkdownNode {
     public let children: List<MarkdownNode>?
 
     public func format(_ interpolations: List<AnyHashable>?) -> MarkdownNode {
-        guard let interpolations, !interpolations.isEmpty() else {
+        guard let interpolations else {
             return self
         }
         let string = formattedString(interpolations)
@@ -89,8 +95,13 @@ public final class MarkdownNode {
     }
 
     public func formattedString(_ interpolations: List<AnyHashable>?) -> String? {
-        guard let string, let interpolationIndexes, let interpolations else {
+        guard let string, let interpolations else {
             return self.string
+        }
+        // Localized literals escape percent signs even when this node has no substitutions.
+        // Plain attributed Markdown has no interpolation context and must remain unchanged.
+        guard let interpolationIndexes else {
+            return string.replace("%%", "%")
         }
         let stringInterpolations = mutableListOf<AnyHashable>()
         for index in interpolationIndexes {

@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 import Foundation
 import XCTest
 
@@ -176,6 +175,47 @@ final class LocaleTests: XCTestCase {
 
         XCTAssertEqual(1, dict.count)
         XCTAssertNotNil(dict["repeats_every_day"])
+    }
+
+    func testLocalizableStringsDictPrintfSpecifiers() throws {
+        #if !SKIP
+        throw XCTSkip("Darwin formats .stringsdict plurals natively")
+        #else
+        let locstr = #"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>%lld files</key>
+            <dict>
+                <key>NSStringLocalizedFormatKey</key>
+                <string>%#@value@</string>
+                <key>value</key>
+                <dict>
+                    <key>NSStringFormatSpecTypeKey</key>
+                    <string>NSStringPluralRuleType</string>
+                    <key>NSStringFormatValueTypeKey</key>
+                    <string>lld</string>
+                    <key>zero</key>
+                    <string>No files</string>
+                    <key>one</key>
+                    <string>%lld file, it's #1</string>
+                    <key>other</key>
+                    <string>%lld files {100%%}</string>
+                </dict>
+            </dict>
+        </dict>
+        </plist>
+        """#
+
+        let data = try XCTUnwrap(locstr.data(using: .utf8))
+        let plist = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, options: [], format: nil))
+        let format = try XCTUnwrap(plist["%lld files"])
+
+        XCTAssertEqual(String.localizedStringWithFormat(format, 0), "No files")
+        XCTAssertEqual(String.localizedStringWithFormat(format, 1), "1 file, it's #1")
+        XCTAssertEqual(String.localizedStringWithFormat(format, 1234), "1234 files {100%}")
+        #endif
     }
 
     func testLocaleFormats() throws {
